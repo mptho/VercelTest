@@ -38,7 +38,7 @@ export default function Home({
 
   useEffect(() => {
     // Chuyển hướng tới trang login.html trong thư mục public
-    router.push("/login.html");
+    router.push("/Login.html");
   }, [router]);
 
   return (
