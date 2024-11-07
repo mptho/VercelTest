@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataTables Example</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="style.css"> <!-- Optional CSS file -->
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            height: 100vh;
+        }
+        .image-container {
+            flex: 0 0 30%; /* 30% width for images */
+            background-color: #f8f9fa; /* Optional background color */
+            text-align: center;
+            border-right: 1px solid #ddd; /* Optional border for separation */
+        }
+        .image-container img {
+            width: 100%; /* Adjust width as needed */
+            height: 100%; /* Maintain aspect ratio */
+            border-radius: 5px;
+        }
+        .table-container {
+            flex: 1; /* Remaining space for the table */
+            padding: 20px;
+        }
+        button {
+            margin: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        /* Style for images in the table */
+        .image-column img {
+            width: 50px; /* Adjust width as needed */
+            height: auto; /* Maintain aspect ratio */
+            border-radius: 5px;
+        }
+        #addBtn {
+            margin-left: 20px; /* Adjust this value to move the button */
+        }
+        /* Modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            padding-top: 60px; /* Location of the box */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 30%; /* Could be more or less, depending on screen size */
+        }
+        .modal-content-1 {
+            background-color: #fefefe;
+            margin: 5% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%; /* Could be more or less, depending on screen size */
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+.modal-body {
+    display: flex; /* Hiển thị dạng flex để căn chỉnh ảnh và form */
+}
+
+.image-preview {
+    flex: 0 0 150px; /* Chiều rộng của ô ảnh */
+    margin-right: 20px; /* Khoảng cách giữa ảnh và form */
+    border: 1px solid #ddd; /* Đường viền cho ô chứa ảnh */
+    border-radius: 5px; /* Bo tròn góc cho ô */
+    display: flex; /* Hiển thị flex cho căn giữa hình ảnh */
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    width: 150px; /* Đặt chiều rộng của khung chứa */
+    height: 150px; /* Đặt chiều cao của khung chứa để đảm bảo hình vuông */
+    background-color: #f9f9f9; /* Màu nền cho khung chứa */
+}
+
+.image-preview img {
+    max-width: 100%; /* Giới hạn chiều rộng của hình ảnh */
+    max-height: 100%; /* Giới hạn chiều cao của hình ảnh */
+    object-fit: cover; /* Đảm bảo hình ảnh không bị méo */
+}
+
+.form-group {
+    margin-bottom: 15px; /* Khoảng cách giữa các trường nhập */
+}
+
+.form-group label {
+    display: block; /* Đặt label thành block để có khoảng cách */
+    margin-bottom: 5px; /* Khoảng cách dưới label */
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%; /* Đặt chiều rộng của trường nhập thành 100% */
+    padding: 8px; /* Padding cho trường nhập */
+    border: 1px solid #ccc; /* Đường viền */
+    border-radius: 4px; /* Bo tròn góc */
+}
+
+/* Định dạng cho modal body */
+.modal-body {
+    display: flex; /* Sử dụng flexbox */
+    justify-content: space-between; /* Căn chỉnh giữa hai phần tử */
+    align-items: flex-start; /* Căn chỉnh theo chiều dọc */
+}
+
+/* Định dạng cho khung chứa form */
+.form-container {
+    flex: 1; /* Chiếm không gian còn lại */
+    margin-right: 20px; /* Khoảng cách bên phải để tạo khoảng cách với bảng */
+}
+
+/* Định dạng cho khung chứa bảng */
+.table-container {
+    flex: 1; /* Chiếm không gian còn lại */
+}
+
+/* Định dạng cho bảng */
+#addedProductsTable {
+    width: 70%; /* Đặt chiều rộng bảng là 100% */
+    border-collapse: collapse; /* Gộp các đường viền bảng */
+    margin-top: 20px; /* Khoảng cách trên bảng */
+}
+
+/* Định dạng cho các ô trong bảng */
+#addedProductsTable th, #addedProductsTable td {
+    border: 1px solid #ddd; /* Thêm đường viền cho các ô */
+    padding: 8px; /* Thêm khoảng cách trong ô */
+    text-align: left; /* Căn trái cho văn bản */
+}
+
+/* Định dạng cho hàng tiêu đề */
+#addedProductsTable th {
+    background-color: #f2f2f2; /* Màu nền cho hàng tiêu đề */
+    font-weight: bold; /* Đặt chữ in đậm cho hàng tiêu đề */
+}
+
+/* Hiệu ứng hover cho hàng */
+#addedProductsTable tbody tr:hover {
+    background-color: #f1f1f1; /* Màu nền khi di chuột qua hàng */
+}
+
+/* Định dạng cho nút trong cột Action */
+#addedProductsTable .edit-btn, 
+#addedProductsTable .remove-btn {
+    padding: 5px 10px; /* Khoảng cách cho nút */
+    margin-right: 5px; /* Khoảng cách giữa các nút */
+    border: none; /* Bỏ đường viền */
+    border-radius: 4px; /* Bo góc cho nút */
+    cursor: pointer; /* Đổi con trỏ khi di chuột vào nút */
+}
+
+#addedProductsTable .edit-btn {
+    background-color: #4CAF50; /* Màu nền cho nút Sửa */
+    color: white; /* Màu chữ cho nút Sửa */
+}
+
+#addedProductsTable .remove-btn {
+    background-color: #f44336; /* Màu nền cho nút Xóa */
+    color: white; /* Màu chữ cho nút Xóa */
+}
+
+.search-results {
+    border: 1px solid #ccc; /* Viền cho kết quả tìm kiếm */
+    max-height: 150px; /* Chiều cao tối đa */
+    overflow-y: auto; /* Thêm thanh cuộn nếu nội dung vượt quá chiều cao */
+    background-color: white; /* Màu nền */
+    position: absolute; /* Vị trí tuyệt đối để hiển thị bên dưới ô nhập */
+    z-index: 1000; /* Để đảm bảo hiển thị phía trên các phần tử khác */
+    width: calc(14% - 20px); /* Chiều rộng */
+    margin-top: 5px; /* Khoảng cách với ô nhập */
+    border-radius: 4px; /* Bo góc */
+}
+
+.search-results div {
+    padding: 8px; /* Khoảng cách bên trong */
+    cursor: pointer; /* Con trỏ sẽ là pointer */
+}
+
+.search-results div:hover {
+    background-color: #f0f0f0; /* Màu nền khi hover */
+}
+.modal-content-2 {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 20%;
+    }
+
+    /* Định dạng cho bảng sản phẩm đã thêm trong modal chỉnh sửa */
+#editAddedProductsTable {
+    width: 70%; /* Đặt chiều rộng bảng là 70% */
+    border-collapse: collapse; /* Gộp các đường viền bảng */
+    margin-top: 20px; /* Khoảng cách trên bảng */
+}
+
+/* Định dạng cho các ô trong bảng */
+#editAddedProductsTable th, #editAddedProductsTable td {
+    border: 1px solid #ddd; /* Thêm đường viền cho các ô */
+    padding: 8px; /* Thêm khoảng cách trong ô */
+    text-align: left; /* Căn trái cho văn bản */
+}
+
+/* Định dạng cho hàng tiêu đề */
+#editAddedProductsTable th {
+    background-color: #f2f2f2; /* Màu nền cho hàng tiêu đề */
+    font-weight: bold; /* Đặt chữ in đậm cho hàng tiêu đề */
+}
+
+/* Hiệu ứng hover cho hàng */
+#editAddedProductsTable tbody tr:hover {
+    background-color: #f1f1f1; /* Màu nền khi di chuột qua hàng */
+}
+
+/* Định dạng cho nút trong cột Action */
+#editAddedProductsTable .edit-btn, 
+#editAddedProductsTable .remove-btn {
+    padding: 5px 10px; /* Khoảng cách cho nút */
+    margin-right: 5px; /* Khoảng cách giữa các nút */
+    border: none; /* Bỏ đường viền */
+    border-radius: 4px; /* Bo góc cho nút */
+    cursor: pointer; /* Đổi con trỏ khi di chuột vào nút */
+}
+
+#editAddedProductsTable .edit-btn {
+    background-color: #4CAF50; /* Màu nền cho nút Sửa */
+    color: white; /* Màu chữ cho nút Sửa */
+}
+
+#editAddedProductsTable .remove-btn {
+    background-color: #f44336; /* Màu nền cho nút Xóa */
+    color: white; /* Màu chữ cho nút Xóa */
+}
+
+/* Định dạng cho kết quả tìm kiếm */
+.edit-search-results {
+    border: 1px solid #ccc; /* Viền cho kết quả tìm kiếm */
+    max-height: 150px; /* Chiều cao tối đa */
+    overflow-y: auto; /* Thêm thanh cuộn nếu nội dung vượt quá chiều cao */
+    background-color: white; /* Màu nền */
+    position: absolute; /* Vị trí tuyệt đối để hiển thị bên dưới ô nhập */
+    z-index: 1000; /* Để đảm bảo hiển thị phía trên các phần tử khác */
+    width: calc(100% - 20px); /* Chiều rộng */
+    margin-top: 5px; /* Khoảng cách với ô nhập */
+    border-radius: 4px; /* Bo góc */
+}
+
+.edit-search-results div {
+    padding: 8px; /* Khoảng cách bên trong */
+    cursor: pointer; /* Con trỏ sẽ là pointer */
+}
+
+.edit-search-results div:hover {
+    background-color: #f0f0f0; /* Màu nền khi hover */
+}
+
+    </style>
+</head>
+<body>
+    <div class="image-container">
+        <img src="Ivbg.png" alt="Bg">
+        <!-- Add more images as needed -->
+    </div>
+    <div class="table-container">
+        <button id="backButton">Back</button>
+        <button id="addInvoiceBtn">Add</button>
+        <table id="dataTable" class="display">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Customer Name</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                    <th>Date Created</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+<!-- Modal for Add/Edit Invoice -->
+<div id="invoiceModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modalTitle">Add Invoice</h2>
+        <div class="modal-body">
+            <form id="invoiceForm">
+                <div class="form-group">
+                    <label for="invoiceId">Invoice ID:</label>
+                    <input type="text" id="invoiceId" required readonly>
+                </div>
+                <div class="form-group">
+                    <label for="customerName">Customer Name:</label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-group" style="display: flex; align-items: center;">
+                    <label for="totalAmount" style="margin-right: 10px;">Total Amount:</label>
+                    <input type="number" id="totalAmount" required readonly style="flex: 1; margin-right: 10px;">
+                    <button type="button" id="addProductBtn">Add Product</button>
+                </div>
+                <div class="form-group">
+                    <label for="status">Status:</label>
+                    <select id="status" required>
+                        <option value="">Select Status</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Unpaid">Unpaid</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dateCreated">Date Created:</label>
+                    <input type="date" id="dateCreated" required>
+                </div>
+                <button type="submit" id="saveBtn">Save</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal for Add Product -->
+<div id="productModal" class="modal">
+    <div class="modal-content-1">
+        <span class="close">&times;</span>
+        <h2 id="productModalTitle">Add Product</h2>
+        <div class="modal-body">
+            <form id="productForm">
+                <div class="form-group">
+                 <label for="productName">Product Name:</label>
+                 <input type="text" id="productName" required>
+                 <div id="searchResults" class="search-results"></div> <!-- Div để hiển thị kết quả tìm kiếm -->
+                </div>
+                <div class="form-group">
+                    <label for="productQuantity">Quantity:</label>
+                    <input type="number" id="productQuantity" required min="1" max="0">
+                </div>
+                <div class="form-group">
+                    <label for="productPrice">Price:</label>
+                    <input type="number" id="productPrice" required>
+                </div>
+                <button type="button" id="addProductToInvoiceBtn">Add</button>
+                <button type="button" id="saveProductsBtn">Save</button> <!-- Nút để thêm sản phẩm vào hóa đơn -->
+            </form>
+
+            <!-- Bảng hiển thị sản phẩm đã thêm -->
+            <table id="addedProductsTable">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xem chi tiết hóa đơn -->
+<div id="viewInvoiceModal" class="modal">
+    <div class="modal-content-2">
+        <span class="close">&times;</span>
+        <h2>Invoice Details</h2>
+        <p><strong>Invoice ID:</strong> <span id="modalInvoiceId"></span></p>
+        <p><strong>Customer Name:</strong> <span id="modalCustomerName"></span></p>
+        <p><strong>Total Amount:</strong> <span id="modalTotalAmount"></span></p>
+        <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+        <p><strong>Date Created:</strong> <span id="modalDateCreated"></span></p>
+        <h3>Products</h3>
+        <table id="modalProductsTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal for Edit Invoice -->
+<div id="editInvoiceModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="editModalTitle">Edit Invoice</h2>
+        <div class="modal-body">
+            <form id="editInvoiceForm">
+                <div class="form-group">
+                    <label for="editInvoiceId">Invoice ID:</label>
+                    <input type="text" id="editInvoiceId" required readonly>
+                </div>
+                <div class="form-group">
+                    <label for="editCustomerName">Customer Name:</label>
+                    <input type="text" id="editCustomerName" required>
+                </div>
+                <div class="form-group" style="display: flex; align-items: center;">
+                    <label for="editTotalAmount" style="margin-right: 10px;">Total Amount:</label>
+                    <input type="number" id="editTotalAmount" required readonly style="flex: 1; margin-right: 10px;">
+                    <button type="button" id="editAddProductBtn">Add Product</button>
+                </div>
+                <div class="form-group">
+                    <label for="editStatus">Status:</label>
+                    <select id="editStatus" required>
+                        <option value="">Select Status</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Unpaid">Unpaid</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editDateCreated">Date Created:</label>
+                    <input type="date" id="editDateCreated" required>
+                </div>
+                <button type="submit" id="updateInvoiceBtn">Update</button> <!-- Nút mới cho chỉnh sửa hóa đơn -->
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Edit Product -->
+<div id="editProductModal" class="modal">
+    <div class="modal-content-1">
+        <span class="close">&times;</span>
+        <h2 id="editProductModalTitle">Edit Product</h2>
+        <div class="modal-body">
+            <form id="editProductForm">
+                <div class="form-group">
+                    <label for="editProductName">Product Name:</label>
+                    <input type="text" id="editProductName" required>
+                    <div id="editSearchResults" class="search-results"></div> <!-- Div để hiển thị kết quả tìm kiếm -->
+                </div>
+                <div class="form-group">
+                    <label for="editProductQuantity">Quantity:</label>
+                    <input type="number" id="editProductQuantity" required min="1" max="0">
+                </div>
+                <div class="form-group">
+                    <label for="editProductPrice">Price:</label>
+                    <input type="number" id="editProductPrice" required>
+                </div>
+                <button type="button" id="editAddProductToInvoiceBtn">Add</button>
+                <button type="button" id="editSaveProductsBtn">Save</button> <!-- Nút để thêm sản phẩm vào hóa đơn -->
+            </form>
+
+            <!-- Bảng hiển thị sản phẩm đã thêm -->
+            <table id="editAddedProductsTable">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Thêm script.js ở đây -->
+    <script src="invoices.js"></script>
+</body>
+</html>
