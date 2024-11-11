@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataTables Example</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="style.css"> <!-- Optional CSS file -->
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            height: 100vh;
+        }
+        .image-container {
+            flex: 0 0 30%; /* 30% width for images */
+            background-color: #f8f9fa; /* Optional background color */
+            text-align: center;
+            border-right: 1px solid #ddd; /* Optional border for separation */
+        }
+        .image-container img {
+            width: 100%; /* Adjust width as needed */
+            height: 100%; /* Maintain aspect ratio */
+            border-radius: 5px;
+        }
+        .table-container {
+            flex: 1; /* Remaining space for the table */
+            padding: 20px;
+        }
+        button {
+            margin: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        /* Style for images in the table */
+        .image-column img {
+            width: 50px; /* Adjust width as needed */
+            height: auto; /* Maintain aspect ratio */
+            border-radius: 5px;
+        }
+        #addBtn {
+            margin-left: 20px; /* Adjust this value to move the button */
+        }
+        /* Modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            padding-top: 60px; /* Location of the box */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 30%; /* Could be more or less, depending on screen size */
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+.modal-body {
+    display: flex; /* Hiển thị dạng flex để căn chỉnh ảnh và form */
+}
+
+.image-preview {
+    flex: 0 0 150px; /* Chiều rộng của ô ảnh */
+    margin-right: 20px; /* Khoảng cách giữa ảnh và form */
+    border: 1px solid #ddd; /* Đường viền cho ô chứa ảnh */
+    border-radius: 5px; /* Bo tròn góc cho ô */
+    display: flex; /* Hiển thị flex cho căn giữa hình ảnh */
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    width: 150px; /* Đặt chiều rộng của khung chứa */
+    height: 150px; /* Đặt chiều cao của khung chứa để đảm bảo hình vuông */
+    background-color: #f9f9f9; /* Màu nền cho khung chứa */
+}
+
+.image-preview img {
+    max-width: 100%; /* Giới hạn chiều rộng của hình ảnh */
+    max-height: 100%; /* Giới hạn chiều cao của hình ảnh */
+    object-fit: cover; /* Đảm bảo hình ảnh không bị méo */
+}
+
+.form-group {
+    margin-bottom: 15px; /* Khoảng cách giữa các trường nhập */
+}
+
+.form-group label {
+    display: block; /* Đặt label thành block để có khoảng cách */
+    margin-bottom: 5px; /* Khoảng cách dưới label */
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%; /* Đặt chiều rộng của trường nhập thành 100% */
+    padding: 8px; /* Padding cho trường nhập */
+    border: 1px solid #ccc; /* Đường viền */
+    border-radius: 4px; /* Bo tròn góc */
+}
+    </style>
+</head>
+<body>
+    <div class="image-container">
+        <img src="Pdbg.png" alt="Bg">
+        <!-- Add more images as needed -->
+    </div>
+    <div class="table-container">
+        <button id="backButton">Back</button>
+        <button id="addBtn">Add</button>
+        <table id="dataTable" class="display">
+            <thead>
+                <tr>
+                    <!-- <th>Image</th> -->
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Category</th>
+                    <th>Stock</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+<!-- Modal for Add Product -->
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modalTitle">Add Product</h2>
+        <div class="modal-body">
+            <!-- <div class="image-preview">
+                <img id="imagePreview" src="" alt="Product Image" style="display: none;">
+            </div> -->
+            <form id="AddproductForm">
+                <div class="form-group">
+                    <label for="invoiceId">ID:</label>
+                    <input type="text" id="productId" required readonly>
+                </div>
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="price">Price:</label>
+                    <input type="number" id="price" required>
+                </div>
+                <div class="form-group">
+                    <label for="category">Category:</label>
+                    <select id="category" required>
+                            <option value="">Select Category</option>
+                            <option value="Burger">Burger</option>
+                            <option value="Pizza">Pizza</option>
+                            <option value="Fried Foods">Fried Foods</option>
+                            <option value="Snacks">Snacks</option>
+                            <option value="Drinks">Drinks</option>
+                </select>
+                </div>
+                <div class="form-group">
+                    <label for="stock">Stock:</label>
+                    <input type="number" id="stock" required>
+                </div>
+                <!-- <div class="form-group">
+                    <label for="imageUpload">Upload Image:</label>
+                    <input type="file" id="imageUpload" accept="image/*" required>
+                </div> -->
+                <button type="Addsubmit" id="saveBtn">Save</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modalTitle">Edit Product</h2>
+        <div class="modal-body">
+            <!-- <div class="image-preview">
+                <img id="imagePreview" src="" alt="Product Image" style="display: none;">
+            </div> -->
+            <form id="EditproductForm">
+                <div class="form-group">
+                    <label for="invoiceId">ID:</label>
+                    <input type="text" id="productId" required readonly>
+                </div>
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="price">Price:</label>
+                    <input type="number" id="price" required>
+                </div>
+                <div class="form-group">
+                    <label for="category">Category:</label>
+                    <select id="category" required>
+                            <option value="">Select Category</option>
+                            <option value="Burger">Burger</option>
+                            <option value="Pizza">Pizza</option>
+                            <option value="Fried Foods">Fried Foods</option>
+                            <option value="Snacks">Snacks</option>
+                            <option value="Drinks">Drinks</option>
+                </select>
+                </div>
+                <div class="form-group">
+                    <label for="stock">Stock:</label>
+                    <input type="number" id="stock" required>
+                </div>
+                <!-- <div class="form-group">
+                    <label for="imageUpload">Upload Image:</label>
+                    <input type="file" id="imageUpload" accept="image/*" required>
+                </div> -->
+                <button type="Editsubmit" id="saveBtn">Save</button>
+            </form>
+        </div>
+    </div>
+    <!-- Thêm script.js ở đây -->
+    <script src="productsnext.js"></script>
+</body>
+</html>
